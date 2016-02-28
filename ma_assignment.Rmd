@@ -1,0 +1,63 @@
+---
+title: "Machine Learning Assignment"
+author: "Andrei Pazniak"
+date: "February 26, 2016"
+output: html_document
+---
+#Activities analyse of tracking devices.
+
+Download train and test data from  http://groupware.les.inf.puc-rio.br/har
+```{r, cache = F, message = F, warning = F, tidy = F}
+library(caret)
+#https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+rawTrain<-read.csv("pml-training.csv")
+rawTest<-read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv")
+```
+
+Divide data to 2 groups training set and Cross Validation set
+```{r}
+set.seed(3433)
+inTrain = createDataPartition(rawTrain$classe, p = 3/4)[[1]]
+trData <- rawTrain[inTrain,]
+cvData <- rawTrain[-inTrain,]
+```
+
+Clean data
+ * remove date, names, ids
+ * remove Near Zero Variance Values
+ * remove all columns with NA > 30% 
+```{r}
+trData<-trData[,-unique(c(1:5, nearZeroVar(rawTrain)))]
+trData<-trData[,colMeans(is.na(trData))<0.3]
+
+#check whether all variables are numeric
+dim(trData)
+sum(sapply(trData, is.numeric))
+```
+#Training
+Train using lda and gbm method
+```{r, warning = F}
+ldaModFit<-train(classe ~ ., method="lda", data = trData, preProcess=c("center","scale"))
+gbmModFit<-train(classe ~ ., method="gbm", data = trData, preProcess=c("center","scale"), verbose = F)
+```
+#Accuracy
+Accuracy for both methods on cross validation dataset are 
+```{r}
+confusionMatrix( predict(ldaModFit, cvData), cvData$classe)$overall['Accuracy']
+confusionMatrix( predict(gbmModFit, cvData), cvData$classe)$overall['Accuracy']
+```
+
+Boosting has much more accuracy than linear discriminant analyses. So, we don`t need to combine these methods.
+Importanance of regressors
+```{r}
+varImp(gbmModFit$finalModel)
+```
+Out of sample errors
+```{r}
+1-confusionMatrix( predict(gbmModFit, cvData), cvData$classe)$overall['Accuracy']
+```
+#Testing dataset
+Finally, predict class on test data.
+```{r}
+predict(gbmModFit, rawTest)
+```
