@@ -80,7 +80,12 @@ rawTest&lt;-read.csv(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/p
 inTrain = createDataPartition(rawTrain$classe, p = 3/4)[[1]]
 trData &lt;- rawTrain[inTrain,]
 cvData &lt;- rawTrain[-inTrain,]</code></pre>
-<p>Clean data * remove date, names, ids * remove Near Zero Variance Values * remove all columns with NA &gt; 30%</p>
+<p>Clean data</p>
+<ul>
+<li>remove date, names, ids</li>
+<li>remove Near Zero Variance Values</li>
+<li>remove all columns with NA &gt; 30%</li>
+</ul>
 <pre class="r"><code>trData&lt;-trData[,-unique(c(1:5, nearZeroVar(rawTrain)))]
 trData&lt;-trData[,colMeans(is.na(trData))&lt;0.3]
 

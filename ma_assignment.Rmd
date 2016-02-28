@@ -23,9 +23,10 @@ cvData <- rawTrain[-inTrain,]
 ```
 
 Clean data
- * remove date, names, ids
- * remove Near Zero Variance Values
- * remove all columns with NA > 30% 
+
+* remove date, names, ids
+* remove Near Zero Variance Values
+* remove all columns with NA > 30% 
 ```{r}
 trData<-trData[,-unique(c(1:5, nearZeroVar(rawTrain)))]
 trData<-trData[,colMeans(is.na(trData))<0.3]
